@@ -5,6 +5,8 @@ import { Client } from '@elastic/elasticsearch';
 @Injectable()
 export class ElasticsearchService implements OnModuleInit {
   private readonly client: Client;
+  private maxRetries = 3;
+  private retryDelay = 3000;
 
   constructor(private configService: ConfigService) {
     this.client = new Client({
@@ -13,14 +15,34 @@ export class ElasticsearchService implements OnModuleInit {
         username: this.configService.get('ES_USERNAME'),
         password: this.configService.get('ES_PASSWORD'),
       },
+      tls: {
+        rejectUnauthorized: false,
+      },
+      maxRetries: this.maxRetries,
+      requestTimeout: 30000,
     });
   }
 
   async onModuleInit() {
-    try {
-      await this.initializeBookIndex();
-    } catch (error) {
-      console.error('Elasticsearch initialization error:', error);
+    let retries = 0;
+    while (retries < this.maxRetries) {
+      try {
+        const info = await this.client.info();
+        console.log('Elasticsearch 连接成功:', info);
+        await this.initializeBookIndex();
+        break;
+      } catch (error) {
+        retries++;
+        console.error(
+          `Elasticsearch 连接失败 (${retries}/${this.maxRetries}):`,
+          error.message,
+        );
+        if (retries === this.maxRetries) {
+          console.error('Elasticsearch 连接重试次数已达上限');
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, this.retryDelay));
+      }
     }
   }
 
