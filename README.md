@@ -58,7 +58,7 @@
 1. 克隆项目
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/HoWhiteDevelop/library-backend.git
 cd library-management-system
 ```
 
@@ -147,8 +147,8 @@ http://localhost:3000/api
 
 ## 开发团队
 
-- 开发者：[Your Name]
-- 联系方式：[Your Email]
+- 开发者：HoWhite
+- 联系方式：howhite1023@gmail.com
 
 ## License
 
