@@ -1,4 +1,14 @@
-import { Controller, Get, Param, Query, Logger, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Logger,
+  Post,
+  UseGuards,
+  Request,
+  BadRequestException,
+} from '@nestjs/common';
 import { BooksService } from './books.service';
 import { ElasticsearchService } from '../elasticsearch/elasticsearch.service';
 import {
@@ -7,6 +17,9 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { BookLoanService } from './book-loan.service';
+import { User } from '../users/entities/user.entity';
 
 @ApiTags('图书管理')
 @Controller('books')
@@ -14,6 +27,7 @@ export class BooksController {
   private readonly logger = new Logger(BooksController.name);
   constructor(
     private readonly booksService: BooksService,
+    private readonly bookLoanService: BookLoanService,
     private readonly elasticsearchService: ElasticsearchService,
   ) {}
 
@@ -105,5 +119,62 @@ export class BooksController {
     }
 
     return { message: '测试数据添加完成' };
+  }
+
+  @Post(':id/borrow')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '借阅图书' })
+  @ApiResponse({ status: 200, description: '借阅成功' })
+  @ApiResponse({ status: 400, description: '图书不可借阅' })
+  @ApiResponse({ status: 401, description: '未授权' })
+  async borrowBook(@Param('id') bookId: string, @Request() req: any) {
+    this.logger.debug(
+      `收到借阅请求，用户: ${JSON.stringify(req.user)}, 图书ID: ${bookId}`,
+    );
+
+    try {
+      // 确保用户ID存在
+      if (!req.user?.userId) {
+        throw new BadRequestException('用户ID不存在');
+      }
+
+      // 借阅图书，传入正确的用户ID
+      const result = await this.bookLoanService.borrowBook(
+        { id: req.user.userId } as User, // 只传入必要的用户信息
+        bookId,
+      );
+      this.logger.debug(`借阅结果: ${JSON.stringify(result)}`);
+
+      // 获取更新后的图书信息
+      const updatedBook = await this.booksService.findOne(bookId);
+      this.logger.debug(`更新后的图书信息: ${JSON.stringify(updatedBook)}`);
+
+      return {
+        success: true,
+        message: '借阅成功',
+        data: {
+          loan: result,
+          book: updatedBook,
+        },
+      };
+    } catch (error) {
+      this.logger.error(`借阅失败: ${error.message}`);
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  }
+
+  @Get('loans/current')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '查询当前用户的借阅记录' })
+  async getCurrentUserLoans(@Request() req: any) {
+    const loans = await this.bookLoanService.getUserBookLoans(req.user.id);
+    return {
+      success: true,
+      data: loans,
+    };
   }
 }
