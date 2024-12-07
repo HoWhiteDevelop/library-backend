@@ -73,6 +73,7 @@ export class BooksController {
     return this.booksService.findByIsbn(isbn);
   }
 
+  @ApiOperation({ summary: '重建索引' })
   @Post('reindex')
   async reindexAllBooks() {
     try {
@@ -91,6 +92,7 @@ export class BooksController {
     }
   }
 
+  @ApiOperation({ summary: '添加测试数据' })
   @Post('test-data')
   async addTestData() {
     const testBooks = [
@@ -176,5 +178,32 @@ export class BooksController {
       success: true,
       data: loans,
     };
+  }
+
+  /**
+   * 获取用户的借阅历史
+   * 包含图书详细信息和借阅状态
+   */
+  @Get('loans/history')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '获取用户借阅历史' })
+  @ApiResponse({ status: 200, description: '成功获取借阅历史' })
+  async getLoanHistory(@Request() req: any) {
+    this.logger.debug(`获取用户借阅历史，用户ID: ${req.user.userId}`);
+    try {
+      const loanHistory = await this.bookLoanService.getUserLoanHistory(
+        req.user.userId,
+      );
+      return {
+        success: true,
+        data: loanHistory,
+      };
+    } catch (error) {
+      this.logger.error(`获取借阅历史失败: ${error.message}`);
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
   }
 }

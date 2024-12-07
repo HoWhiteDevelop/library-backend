@@ -163,4 +163,37 @@ export class BookLoanService {
     this.logger.debug(`用户借阅记录: ${JSON.stringify(loans)}`);
     return loans;
   }
+
+  /**
+   * 获取用户的借阅历史
+   * @param userId - 用户ID
+   * @returns 包含图书信息的借阅记录
+   */
+  async getUserLoanHistory(userId: number) {
+    this.logger.debug(`查询用户借阅历史，用户ID: ${userId}`);
+
+    // 使用 QueryBuilder 构建联合查询
+    const loanHistory = await this.bookLoanRepository
+      .createQueryBuilder('bookLoan')
+      .leftJoinAndSelect('bookLoan.book', 'book') // 关联图书信息
+      .where('bookLoan.userId = :userId', { userId })
+      .orderBy('bookLoan.loanDate', 'DESC') // 按借阅时间降序排序
+      .getMany();
+
+    // 格式化返回数据
+    const formattedHistory = loanHistory.map((loan) => ({
+      id: loan.id,
+      bookId: loan.bookId,
+      bookTitle: loan.book.title,
+      bookAuthor: loan.book.author,
+      bookIsbn: loan.book.isbn,
+      loanDate: loan.loanDate,
+      returnDate: loan.returnDate,
+      status: loan.returnDate ? '已归还' : '借阅中',
+      currentBookStatus: loan.book.status,
+    }));
+
+    this.logger.debug(`查询结果: ${JSON.stringify(formattedHistory)}`);
+    return formattedHistory;
+  }
 }
