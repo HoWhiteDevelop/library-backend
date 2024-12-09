@@ -59,7 +59,7 @@
 
 ```bash
 git clone https://github.com/HoWhiteDevelop/library-backend.git
-cd library-management-system
+cd library-backend
 ```
 
 2. 安装依赖
@@ -153,3 +153,144 @@ http://localhost:3000/api
 ## License
 
 [MIT licensed](LICENSE)
+
+## 完整文件结构说明
+
+```
+src/
+├── main.ts                     # 应用程序入口文件
+│   - 配置全局中间件
+│   - 配置 Swagger 文档
+│   - 启动应用程序
+│   - 配置全局异常过滤器
+│
+├── modules/
+│   ├── books/                 # 图书管理模块
+│   │   ├── books.service.ts   # 图书服务
+│   │   │   - 图书 CRUD 操作
+│   │   │   - 图书信息查询
+│   │   │   - 库存管理
+│   │   │   - 图书状态更新
+│   │   │
+│   │   ├── books.module.ts    # 图书模块配置
+│   │   │   - 导入依赖模块
+│   │   │   - 配置服务提供者
+│   │   │   - 导出模块接口
+│   │   │
+│   │   ├── books.controller.ts # 图书控制器
+│   │   │   - 处理图书相关请求
+│   │   │   - 路由配置
+│   │   │   - 参数验证
+│   │   │   - 权限控制
+│   │   │
+│   │   └── book-loan.service.ts # 借阅服务
+│   │       - 借书业务逻辑
+│   │       - 还书业务逻辑
+│   │       - 借阅历史管理
+│   │       - 逾期处理
+│   │
+│   └── auth/                  # 认证模块
+│       ├── local.strategy.ts  # 本地认证策略
+│       │   - 用户名密码验证
+│       │   - 用户信息验证
+│       │   - 登录逻辑处理
+│       │
+│       ├── local-auth.guard.ts # 本地认证守卫
+│       │   - 登录接口保护
+│       │   - 认证信息验证
+│       │   - 会话管理
+│       │
+│       ├── jwt.strategy.ts    # JWT认证策略
+│       │   - Token 验证
+│       │   - Token 解析
+│       │   - 用户信息提取
+│       │   - 权限验证
+│       │
+│       └── jwt-auth.guard.ts  # JWT认证守卫
+│           - API 接口保护
+│           - Token 有效性验证
+│           - 权限检查
+│           - 请求拦截
+```
+
+### 详细功能说明
+
+#### 入口文件 (main.ts)
+
+- 应用程序引导和初始化
+- 全局配置设置
+- 中间件注册
+- 异常处理配置
+- 文档系统配置
+- 服务器启动配置
+
+#### Books 模块详解
+
+**books.service.ts**
+
+- 图书信息的增删改查
+- ISBN 编号管理
+- 库存数量追踪
+- 图书分类管理
+- 图书状态监控
+- 搜索功能实现
+
+**books.module.ts**
+
+- 模块依赖配置
+- 服务注册
+- 数据库连接配置
+- 缓存配置
+- 搜索引擎集成
+
+**books.controller.ts**
+
+- RESTful API 实现
+- 请求参数验证
+- 响应数据格式化
+- 权限检查
+- 异常处理
+- 日志记录
+
+**book-loan.service.ts**
+
+- 借阅规则实现
+- 借阅状态管理
+- 借阅历史记录
+- 逾期处理
+- 自动提醒功能
+- 黑名单管理
+
+#### Auth 模块详解
+
+**local.strategy.ts**
+
+- 本地认证逻辑
+- 密码加密处理
+- 用户验证流程
+- 登录尝试限制
+- 安全策略实现
+
+**local-auth.guard.ts**
+
+- 登录保护
+- 会话管理
+- 认证信息验证
+- 登录状态维护
+- 安全拦截
+
+**jwt.strategy.ts**
+
+- JWT 令牌生成
+- 令牌验证逻辑
+- 用户信息加密
+- 令牌刷新机制
+- 安全策略实现
+
+**jwt-auth.guard.ts**
+
+- API 访问控制
+- 令牌有效性检查
+- 权限级别验证
+- 请求过滤
+- 安全拦截器
