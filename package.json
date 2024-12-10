@@ -8,7 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
-    "start": "nest start",
+    "start": "pm2 start ecosystem.config.js",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
@@ -17,7 +17,11 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "update-passwords": "ts-node src/scripts/update-passwords.ts"
+    "update-passwords": "ts-node src/scripts/update-passwords.ts",
+    "stop": "pm2 stop ecosystem.config.js",
+    "restart": "pm2 restart ecosystem.config.js",
+    "deploy": "npm run build && pm2 start ecosystem.config.js",
+    "start:pm2:dev": "npm run build && pm2 start ecosystem.config.dev.js"
   },
   "dependencies": {
     "@elastic/elasticsearch": "^8.11.0",
